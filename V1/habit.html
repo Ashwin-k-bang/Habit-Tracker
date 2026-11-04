@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EEF1EF">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Habit · Habits</title>
+<style>
+:root{--bg:#EEF1EF;--card:#fff;--ink:#17302D;--mute:#667A77;--line:#D9E0DD;--acc:#D9822B;--ok:#22A55E;--rec:#E5484D;--blue:#1D4ED8;--r:14px}
+:root[data-theme=dark]{--bg:#0E1514;--card:#16201F;--ink:#E4EEEC;--mute:#8CA19E;--line:#263433;--acc:#F0993F;--ok:#2FBF71;--rec:#FF6369;--blue:#5B8CFF}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Avenir Next","Segoe UI",system-ui,sans-serif;padding:0 env(safe-area-inset-right) 40px env(safe-area-inset-left)}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;gap:10px;align-items:center}
+header .back{text-decoration:none;color:inherit;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;font-weight:600}
+.sp{flex:1}
+#syncb{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;text-decoration:none;color:var(--ink);white-space:nowrap}
+#syncb.ok{color:var(--ok)}#syncb.err{color:var(--rec)}
+main{max-width:900px;margin:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.hero{text-align:center;background:var(--acc);border:0;color:#fff}
+.hero h1{margin:0;font-size:26px;letter-spacing:-.02em;overflow-wrap:anywhere}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stats div{background:rgba(255,255,255,.2);border-radius:10px;padding:8px 4px}
+.stats b{display:block;font-size:22px}.stats span{font-size:12px;opacity:.95}
+.yr{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.yr h2{margin:0;font-size:20px}
+button{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px}
+button:hover{border-color:var(--acc)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mute);flex-wrap:wrap;margin:10px 0 0}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.months{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:12px}
+.mon{border:1px solid var(--line);border-radius:12px;padding:10px}
+.mon h4{margin:0 0 6px;font-size:14px;display:flex;justify-content:space-between}
+.mon h4 small{color:var(--mute);font-weight:500}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal .w{font-size:10px;color:var(--mute);text-align:center}
+.cal .d{aspect-ratio:1/1;border-radius:5px;font-size:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--mute) 12%,var(--card));color:var(--mute);border:0;padding:0;cursor:pointer}
+.cal .d.ok{background:var(--ok);color:#fff;font-weight:700}
+.cal .d.miss{background:var(--rec);color:#fff}
+.cal .d.fut{opacity:.45;cursor:default}
+.cal .d.today{outline:2px solid var(--ink);outline-offset:1px}
+.cal .e{visibility:hidden}
+label{display:block;font-size:13px;color:var(--mute);margin:0 0 4px}
+input{font:inherit;color:inherit;width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+.danger{color:var(--rec);width:100%}
+.note{font-size:13px;color:var(--mute)}
+h3{margin:0 0 10px;font-size:16px}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="./">&larr; Habits</a>
+  <span class="sp"></span>
+  <a id="syncb" href="#sync">Sync</a>
+</header>
+<main id="main"><p class="note">Loading...</p></main>
+
+<script src="habits.js?v=1"></script>
+<script>
+const hid=new URLSearchParams(location.search).get('h')||'';
+let T=null,D=new Set(),year=new Date().getFullYear(),synced=false,built=false;
+const MONF=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function build(){
+  $('#main').innerHTML=`
+  <section class="card hero"><h1 id="hN"></h1>
+    <div class="stats"><div><b id="sCur">0</b><span>current streak</span></div><div><b id="sBest">0</b><span>best streak</span></div><div><b id="sYr">0%</b><span id="sYrL"></span></div></div></section>
+  <section class="card">
+    <div class="yr"><button id="py" aria-label="Previous year">&larr;</button><h2 id="yT"></h2><button id="ny" aria-label="Next year">&rarr;</button></div>
+    <div class="legend"><span><i style="background:var(--ok)"></i>done</span><span><i style="background:var(--rec)"></i>missed</span><span><i style="background:color-mix(in srgb,var(--mute) 25%,var(--card))"></i>not tracked / future</span></div>
+    <div class="months" id="months"></div>
+    <p class="note" style="margin:10px 0 0">Tap any day to mark it done or undo it. Days before you added this habit are not counted as missed.</p>
+  </section>
+  <section class="card"><h3>Habit name</h3><label for="nIn" class="note">Rename</label><input id="nIn" maxlength="60"></section>
+  <button class="danger" id="delH">Delete this habit</button>`;
+  built=true;
+  $('#py').onclick=()=>{year--;render()};$('#ny').onclick=()=>{year++;render()};
+  $('#months').addEventListener('click',e=>{
+    const b=e.target.closest('.d[data-d]');if(!b||b.classList.contains('fut'))return;
+    const k=b.dataset.d,on=!D.has(hid+'|'+k);
+    on?D.add(hid+'|'+k):D.delete(hid+'|'+k);render();HB.toggle(hid,k,on).then(load);
+  });
+  $('#nIn').onchange=()=>{const n=$('#nIn').value.trim();if(!n){$('#nIn').value=T.name;return}HB.put({...T,name:n}).then(load)};
+  $('#delH').onclick=async()=>{
+    if(!confirm('Delete "'+T.name+'" and its whole history?'))return;
+    const ids=[hid,...[...D].filter(k=>k.startsWith(hid+'|')).map(k=>'d_'+hid+'_'+k.split('|')[1])];
+    await HB.del(ids);location.href='./';
+  };
+}
+function render(){
+  if(!T){
+    $('#main').innerHTML=synced?`<section class="card"><h3>Habit not found</h3><p class="note">It may have been deleted on another device.</p><a href="./">Back to all habits</a></section>`:'<p class="note">Loading...</p>';
+    built=false;return;
+  }
+  if(!built)build();
+  document.title=T.name+' · Habits';
+  $('#hN').textContent=T.name;
+  if(document.activeElement!==$('#nIn'))$('#nIn').value=T.name;
+  $('#sCur').textContent=streakOf(hid,D);$('#sBest').textContent=bestOf(hid,D);
+  $('#yT').textContent=year;
+  const td=today(),mine=[...D].filter(k=>k.startsWith(hid+'|')).map(k=>k.split('|')[1]).sort();
+  /* tracking starts on the day the habit was created, or its earliest tick if that is earlier */
+  let start=ymd(new Date(T.c||Date.now()));if(mine.length&&mine[0]<start)start=mine[0];
+  let html='',yTrack=0,yDone=0;
+  for(let m=0;m<12;m++){
+    const n=new Date(year,m+1,0).getDate(),off=new Date(year,m,1).getDay();
+    let cells='<span class="w">S</span><span class="w">M</span><span class="w">T</span><span class="w">W</span><span class="w">T</span><span class="w">F</span><span class="w">S</span>'+'<span class="e"></span>'.repeat(off);
+    let mDone=0,mTrack=0;
+    for(let d=1;d<=n;d++){
+      const k=year+'-'+pad(m+1)+'-'+pad(d),on=D.has(hid+'|'+k);
+      let c='d';
+      if(k>td)c+=' fut';
+      else if(on){c+=' ok';mDone++;mTrack++}
+      else if(k>=start){c+=' miss';mTrack++}
+      if(on&&k>td){c+=' ok'}
+      if(k===td)c+=' today';
+      cells+=`<button class="${c}" data-d="${k}" aria-label="${k}${on?', done':''}">${d}</button>`;
+    }
+    yTrack+=mTrack;yDone+=mDone;
+    html+=`<div class="mon"><h4>${MONF[m]}<small>${mTrack?mDone+'/'+mTrack:''}</small></h4><div class="cal">${cells}</div></div>`;
+  }
+  $('#months').innerHTML=html;
+  $('#sYr').textContent=yTrack?Math.round(100*yDone/yTrack)+'%':'–';
+  $('#sYrL').textContent='success in '+year;
+}
+async function load(){const d=await HB.all();T=d.habits.find(h=>h.id===hid)||null;D=d.done;render()}
+
+HB.on(load);bindSyncButton();
+HB.onStatus(s=>{if((s==='ok'||s==='ro'||s==='err')&&!synced){synced=true;if(!T)render()}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load()});
+HB.open().then(async()=>{await load();HB.start(5000)});
+</script>
+</body>
+</html>
