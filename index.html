@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EEF1EF">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=3">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3">
+<link rel="manifest" href="manifest.webmanifest?v=3">
+<title>Habits</title>
+<style>
+:root{--bg:#EEF1EF;--card:#fff;--ink:#17302D;--mute:#667A77;--line:#D9E0DD;--acc:#D9822B;--ok:#22A55E;--rec:#E5484D;--blue:#1D4ED8;--r:14px}
+:root[data-theme=dark]{--bg:#0E1514;--card:#16201F;--ink:#E4EEEC;--mute:#8CA19E;--line:#263433;--acc:#F0993F;--ok:#2FBF71;--rec:#FF6369;--blue:#5B8CFF}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Avenir Next","Segoe UI",system-ui,sans-serif;padding:0 env(safe-area-inset-right) 60px env(safe-area-inset-left)}
+header{background:var(--bg);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;gap:10px;align-items:center}
+header h1{font-size:20px;margin:0;letter-spacing:-.02em}
+.sp{flex:1}
+#syncb{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;text-decoration:none;color:var(--ink);white-space:nowrap}
+#syncb.ok{color:var(--ok)}#syncb.err{color:var(--rec)}
+main{max-width:1000px;margin:auto;padding:12px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin:0 0 10px;align-items:center}
+.legend i{display:inline-block;width:3px;height:14px;margin-right:5px;vertical-align:-3px}
+.wrap{overflow:auto;max-height:calc(100vh - 190px);background:var(--card);border:1px solid var(--line);border-radius:var(--r);-webkit-overflow-scrolling:touch}
+table{border-collapse:separate;border-spacing:0}
+th,td{padding:3px 0;text-align:center;min-width:38px;border-right:2px solid transparent}
+td.sat,th.sat{border-right:2px solid var(--rec)}
+td.eom,th.eom{border-right:5px solid var(--blue)}
+thead th{position:sticky;top:0;z-index:2;background:var(--card);font-weight:500;font-size:11px;color:var(--mute);line-height:1.2;padding:5px 0;border-bottom:1px solid var(--line)}
+thead th b{display:block;font-size:14px;color:var(--ink)}
+thead th .mo{display:block;height:13px;font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;white-space:nowrap;text-align:left;padding-left:4px;overflow:visible}
+thead th.td b{color:#fff;background:var(--acc);border-radius:6px;margin:0 4px}
+.nm{position:sticky;left:0;z-index:1;background:var(--card);min-width:118px;max-width:118px;text-align:left!important;padding:6px 8px!important;border-right:1px solid var(--line)!important;font-weight:600;font-size:14px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;cursor:pointer;overflow-wrap:anywhere}
+thead th.nm{z-index:3;color:var(--mute);font-size:12px;vertical-align:bottom}
+.nm small{display:block;color:var(--mute);font-weight:500;font-size:11px}
+.nm:active{background:color-mix(in srgb,var(--acc) 18%,var(--card))}
+.sq{display:block;width:30px;height:30px;margin:0 auto;border-radius:7px;border:1.5px solid var(--line);background:transparent;cursor:pointer;padding:0;touch-action:manipulation}
+.sq.on{background:var(--ok);border-color:var(--ok)}
+.sq.on::after{content:"✓";color:#fff;font-weight:800;font-size:15px}
+.sq.fail{background:var(--rec);border-color:var(--rec)}
+.sq.fail::after{content:"✕";color:#fff;font-weight:800;font-size:14px}
+.sq:disabled{opacity:.3;cursor:default}
+tr:not(:last-child) td{border-bottom:0}
+.add{margin-top:12px;width:100%;font:inherit;cursor:pointer;border:2px dashed var(--line);background:transparent;color:var(--mute);border-radius:var(--r);padding:14px;font-size:16px}
+.add:hover{border-color:var(--acc);color:var(--acc)}
+.earlier{font:inherit;font-size:12px;color:var(--mute);border:1px solid var(--line);background:var(--card);border-radius:8px;padding:5px 10px;cursor:pointer;margin-bottom:8px}
+.note{font-size:13px;color:var(--mute)}
+.empty{padding:24px 16px;color:var(--mute)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+dialog{border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);padding:18px;width:min(92vw,380px)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h3{margin:0 0 10px}
+dialog input{font:inherit;color:inherit;width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+.row{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+.row button{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px}
+.row .pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <h1>Habits</h1>
+  <span class="sp"></span>
+  <a id="syncb" href="#sync">Sync</a>
+</header>
+<main>
+  <div class="legend"><span><i style="background:var(--rec)"></i>end of week (Saturday)</span><span><i style="background:var(--blue);width:5px"></i>end of month</span><span style="color:var(--ok)">■ done</span><span style="color:var(--rec)">■ failed (double tap)</span></div>
+  <button class="earlier" id="earlier" type="button">&larr; Show 2 earlier months</button>
+  <div class="wrap" id="wrap"></div>
+  <button class="add" id="addh" type="button">+ New habit</button>
+  <p class="note" style="margin-top:14px">Tap a square = done that day (tap again to undo). Double tap = failed that day. Tap a habit name to open its year view.</p>
+</main>
+
+<dialog id="dlg">
+  <h3>New habit</h3>
+  <input id="nm" maxlength="60" placeholder="Habit name (e.g. Read 20 pages)" aria-label="Habit name" autocomplete="off">
+  <div class="row"><button type="button" id="cx">Cancel</button><button type="button" class="pri" id="ok">Add</button></div>
+</dialog>
+
+<script src="habits.js?v=2"></script>
+<script>
+let H=[],D=new Set(),F=new Set(),back=2,first=true;
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],WD='SMTWTFS';
+const habitUrl=id=>'habit.html?h='+encodeURIComponent(id);
+
+function days(){
+  const t=new Date(),s=new Date(t.getFullYear(),t.getMonth()-back,1),e=new Date(t.getFullYear(),t.getMonth()+1,0),a=[];
+  for(const d=new Date(s);d<=e;d.setDate(d.getDate()+1))a.push(new Date(d));
+  return a;
+}
+function render(){
+  const w=$('#wrap');
+  if(!H.length){w.innerHTML='<p class="empty">No habits yet. Tap “+ New habit” below to add your first one.</p>';return}
+  const ds=days(),td=today(),sl=w.scrollLeft,st=w.scrollTop;
+  const cls=d=>{const nx=new Date(d);nx.setDate(d.getDate()+1);return nx.getDate()===1?'eom':d.getDay()===6?'sat':''};
+  const head=ds.map(d=>`<th class="${cls(d)} ${ymd(d)===td?'td':''}"><span class="mo">${d.getDate()===1?MON[d.getMonth()]+(d.getMonth()===0?' '+d.getFullYear():''):''}</span>${WD[d.getDay()]}<b>${d.getDate()}</b></th>`).join('');
+  const rows=H.map(h=>{
+    const s=streakOf(h.id,D);
+    return `<tr><td class="nm" data-id="${esc(h.id)}">${esc(h.name)}<small>${s?'🔥 '+s+' day'+(s>1?'s':''):'no streak'}</small></td>`+
+      ds.map(d=>{const k=ymd(d),on=D.has(h.id+'|'+k);
+        return `<td class="${cls(d)}"><button class="sq${on?' on':F.has(h.id+'|'+k)?' fail':''}" data-h="${esc(h.id)}" data-d="${k}" ${k>td?'disabled':''} aria-label="${esc(h.name)} ${k}${on?', done':''}" aria-pressed="${on}"></button></td>`}).join('')+'</tr>';
+  }).join('');
+  w.innerHTML=`<table><thead><tr><th class="nm">Habit</th>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+  if(first){first=false;
+    const c=w.querySelector('th.td');
+    if(c)w.scrollLeft=Math.max(0,c.offsetLeft-w.clientWidth+130);
+  }else{w.scrollLeft=sl;w.scrollTop=st}
+}
+async function load(){const d=await HB.all();H=d.habits;D=d.done;F=d.fail;render()}
+
+/* tap square = toggle */
+let lt={k:'',t:0};
+$('#wrap').addEventListener('click',e=>{
+  const b=e.target.closest('.sq');if(!b||b.disabled)return;
+  const h=b.dataset.h,d=b.dataset.d,k=h+'|'+d,now=Date.now();let s;
+  if(lt.k===k&&now-lt.t<400){s='fail';lt={k:'',t:0}}
+  else{lt={k,t:now};s=D.has(k)?null:'ok'}
+  D.delete(k);F.delete(k);if(s==='ok')D.add(k);if(s==='fail')F.add(k);
+  render();HB.mark(h,d,s).then(load);
+});
+/* tap habit name = open its year page */
+$('#wrap').addEventListener('click',e=>{
+  const n=e.target.closest('td.nm');if(!n)return;
+  location.href=habitUrl(n.dataset.id);
+});
+
+$('#earlier').onclick=()=>{back+=2;const w=$('#wrap'),o=w.scrollWidth;render();w.scrollLeft+=w.scrollWidth-o};
+
+/* add habit */
+function addItem(){
+  const name=$('#nm').value.trim();if(!name){$('#nm').focus();return}
+  HB.put({id:HB.uid(),k:'h',name,c:Date.now()}).then(()=>{$('#dlg').close();load()});
+}
+$('#addh').onclick=()=>{$('#nm').value='';$('#dlg').showModal();setTimeout(()=>$('#nm').focus(),50)};
+$('#ok').onclick=addItem;$('#cx').onclick=()=>$('#dlg').close();
+$('#nm').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
+
+HB.on(load);bindSyncButton();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load()});
+HB.open().then(async()=>{await load();HB.start(5000)});
+</script>
+</body>
+</html>
