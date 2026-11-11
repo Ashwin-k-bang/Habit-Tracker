@@ -24,7 +24,7 @@ main{max-width:1000px;margin:auto;padding:12px}
 .legend i{display:inline-block;width:3px;height:14px;margin-right:5px;vertical-align:-3px}
 .wrap{overflow:auto;max-height:calc(100vh - 190px);background:var(--card);border:1px solid var(--line);border-radius:var(--r);-webkit-overflow-scrolling:touch}
 table{border-collapse:separate;border-spacing:0}
-th,td{padding:3px 0;text-align:center;min-width:38px;border-right:2px solid transparent}
+th,td{padding:3px 0;text-align:center;min-width:54px;border-right:2px solid transparent}
 td.sat,th.sat{border-right:2px solid var(--rec)}
 td.eom,th.eom{border-right:5px solid var(--blue)}
 thead th{position:sticky;top:0;z-index:2;background:var(--card);font-weight:500;font-size:11px;color:var(--mute);line-height:1.2;padding:5px 0;border-bottom:1px solid var(--line)}
@@ -35,12 +35,15 @@ thead th.td b{color:#fff;background:var(--acc);border-radius:6px;margin:0 4px}
 thead th.nm{z-index:3;color:var(--mute);font-size:12px;vertical-align:bottom}
 .nm small{display:block;color:var(--mute);font-weight:500;font-size:11px}
 .nm:active{background:color-mix(in srgb,var(--acc) 18%,var(--card))}
-.sq{position:relative;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;display:block;width:30px;height:30px;margin:0 auto;border-radius:7px;border:1.5px solid var(--line);background:transparent;cursor:pointer;padding:0;touch-action:manipulation}
+.sq{position:relative;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;display:block;overflow:hidden;width:48px;height:48px;margin:0 auto;border-radius:7px;border:1.5px solid var(--line);background:transparent;cursor:pointer;padding:0;touch-action:manipulation}
 .sq.on{background:var(--ok);border-color:var(--ok)}
 .sq.on::after{content:"✓";color:#fff;font-weight:800;font-size:15px}
 .sq.fail{background:var(--rec);border-color:var(--rec)}
 .sq.fail::after{content:"✕";color:#fff;font-weight:800;font-size:14px}
-.sq.hasn::before{content:"";position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--acc);border:1.5px solid var(--card)}
+.sq .bt{position:absolute;inset:0;padding:2px 3px;font-size:8px;line-height:1.1;font-weight:500;text-align:left;color:var(--mute);overflow:hidden;word-break:break-word;pointer-events:none;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5}
+.sq.on .bt,.sq.fail .bt{color:rgba(255,255,255,.88)}
+.sq.hasn.on::after,.sq.hasn.fail::after{position:absolute;top:1px;right:3px;font-size:10px;line-height:1}
+.sq.hasn .bt{padding-right:12px}
 .sq:disabled{opacity:.3;cursor:default}
 tr:not(:last-child) td{border-bottom:0}
 .add{margin-top:12px;width:100%;font:inherit;cursor:pointer;border:2px dashed var(--line);background:transparent;color:var(--mute);border-radius:var(--r);padding:14px;font-size:16px}
@@ -69,7 +72,7 @@ dialog input{font:inherit;color:inherit;width:100%;background:var(--card);border
   <button class="earlier" id="earlier" type="button">&larr; Show 2 earlier months</button>
   <div class="wrap" id="wrap"></div>
   <button class="add" id="addh" type="button">+ New habit</button>
-  <p class="note" style="margin-top:14px">Tap a square = done that day (tap again to undo). Double tap = failed that day. Tap a habit name to open its year view. Long-press a square (right-click on desktop) to write a note for that day; an orange dot marks days that have a note.</p>
+  <p class="note" style="margin-top:14px">Tap a square = done that day (tap again to undo). Double tap = failed that day. Tap a habit name to open its year view. Long-press a square (right-click on desktop) to write a note for that day; the note shows faintly inside that day's square.</p>
 </main>
 
 <dialog id="dlg">
@@ -99,7 +102,7 @@ function render(){
     const s=streakOf(h.id,D);
     return `<tr><td class="nm" data-id="${esc(h.id)}">${esc(h.name)}<small>${s?'🔥 '+s+' day'+(s>1?'s':''):'no streak'}</small></td>`+
       ds.map(d=>{const k=ymd(d),on=D.has(h.id+'|'+k);
-        return `<td class="${cls(d)}"><button class="sq${on?' on':F.has(h.id+'|'+k)?' fail':''}${N.has(h.id+'|'+k)?' hasn':''}" data-h="${esc(h.id)}" data-d="${k}" ${k>td?'disabled':''} aria-label="${esc(h.name)} ${k}${on?', done':''}" aria-pressed="${on}"${N.has(h.id+'|'+k)?' title="'+esc(N.get(h.id+'|'+k))+'"':''}></button></td>`}).join('')+'</tr>';
+        return `<td class="${cls(d)}"><button class="sq${on?' on':F.has(h.id+'|'+k)?' fail':''}${N.has(h.id+'|'+k)?' hasn':''}" data-h="${esc(h.id)}" data-d="${k}" ${k>td?'disabled':''} aria-label="${esc(h.name)} ${k}${on?', done':''}" aria-pressed="${on}"${N.has(h.id+'|'+k)?' title="'+esc(N.get(h.id+'|'+k))+'"':''}>${N.has(h.id+'|'+k)?'<span class="bt">'+esc(N.get(h.id+'|'+k))+'</span>':''}</button></td>`}).join('')+'</tr>';
   }).join('');
   w.innerHTML=`<table><thead><tr><th class="nm">Habit</th>${head}</tr></thead><tbody>${rows}</tbody></table>`;
   if(first){first=false;
